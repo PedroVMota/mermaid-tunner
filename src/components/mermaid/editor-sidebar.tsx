@@ -17,9 +17,7 @@ import {
   CollapsibleTrigger,
 } from "@/components/ui/collapsible"
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
 import { ScrollArea } from "@/components/ui/scroll-area"
-import { Separator } from "@/components/ui/separator"
 import { MERMAID_SAMPLES, SAMPLE_NAMES } from "@/lib/mermaid-samples"
 import { cn } from "@/lib/utils"
 import { CodeEditor } from "./code-editor"

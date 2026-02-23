@@ -89,6 +89,7 @@ export const MermaidPreview = forwardRef<MermaidPreviewHandle, MermaidPreviewPro
     }), [isDark, zoom, handleZoomIn, handleZoomOut, handleFitToScreen])
 
     useEffect(() => {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- Sync with external store (DOM class)
       setIsDark(getIsDarkMode())
 
       const handleThemeChange = () => {
@@ -129,6 +130,7 @@ export const MermaidPreview = forwardRef<MermaidPreviewHandle, MermaidPreviewPro
     }, [code, isDark])
 
     useEffect(() => {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- Async render with error state
       renderDiagram()
     }, [renderDiagram])
 

@@ -10,6 +10,7 @@ export function ThemeToggle() {
     const stored = localStorage.getItem("theme")
     const shouldBeDark = stored !== "light"
 
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- Sync with external store (localStorage)
     setIsDark(shouldBeDark)
     document.documentElement.classList.toggle("dark", shouldBeDark)
   }, [])

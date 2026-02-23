@@ -1,16 +1,6 @@
 "use client"
 
-import { Menu, Github, History, Share2, Save } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { MermaidLogo } from "./mermaid-logo"
-
-interface EditorHeaderProps {
-  onMenuToggle?: () => void
-  onShare?: () => void
-  onSave?: () => void
-}
-
-export function EditorHeader({ onMenuToggle, onShare, onSave }: EditorHeaderProps) {
+export function EditorHeader() {
   return (
     <header className="flex h-12 shrink-0 items-center justify-between border-b border-zinc-200 bg-white px-4 dark:border-zinc-800 dark:bg-[#1a1a2e]">
       {/* Left: Hamburger + Logo */}

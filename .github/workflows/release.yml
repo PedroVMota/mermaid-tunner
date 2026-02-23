@@ -1,0 +1,166 @@
+name: Release
+
+on:
+  pull_request:
+    types: [closed]
+    branches:
+      - main
+
+permissions:
+  contents: write
+  pull-requests: read
+
+jobs:
+  release:
+    name: Create Release
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.merged == true
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Configure Git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Determine version bump
+        id: version
+        run: |
+          LABELS='${{ toJSON(github.event.pull_request.labels.*.name) }}'
+
+          if echo "$LABELS" | grep -qE '"breaking-change"|"brc"'; then
+            echo "bump=major" >> $GITHUB_OUTPUT
+            echo "Detected: MAJOR release (breaking change)"
+          elif echo "$LABELS" | grep -qE '"feature"|"feat"'; then
+            echo "bump=minor" >> $GITHUB_OUTPUT
+            echo "Detected: MINOR release (feature)"
+          elif echo "$LABELS" | grep -qE '"bugfix"|"fix"|"patch"'; then
+            echo "bump=patch" >> $GITHUB_OUTPUT
+            echo "Detected: PATCH release (bugfix)"
+          else
+            echo "bump=none" >> $GITHUB_OUTPUT
+            echo "No release labels found, skipping release"
+          fi
+
+      - name: Bump version
+        if: steps.version.outputs.bump != 'none'
+        id: bump
+        run: |
+          BUMP=${{ steps.version.outputs.bump }}
+
+          # Get current version
+          CURRENT_VERSION=$(node -p "require('./package.json').version")
+          echo "Current version: $CURRENT_VERSION"
+
+          # Parse version components
+          IFS='.' read -r MAJOR MINOR PATCH <<< "$CURRENT_VERSION"
+
+          # Bump version based on type
+          case $BUMP in
+            major)
+              MAJOR=$((MAJOR + 1))
+              MINOR=0
+              PATCH=0
+              ;;
+            minor)
+              MINOR=$((MINOR + 1))
+              PATCH=0
+              ;;
+            patch)
+              PATCH=$((PATCH + 1))
+              ;;
+          esac
+
+          NEW_VERSION="$MAJOR.$MINOR.$PATCH"
+          echo "New version: $NEW_VERSION"
+          echo "version=$NEW_VERSION" >> $GITHUB_OUTPUT
+
+          # Update package.json
+          npm version $NEW_VERSION --no-git-tag-version
+
+      - name: Generate changelog entry
+        if: steps.version.outputs.bump != 'none'
+        id: changelog
+        run: |
+          VERSION=${{ steps.bump.outputs.version }}
+          DATE=$(date +%Y-%m-%d)
+          PR_TITLE="${{ github.event.pull_request.title }}"
+          PR_NUMBER="${{ github.event.pull_request.number }}"
+          PR_URL="${{ github.event.pull_request.html_url }}"
+          BUMP="${{ steps.version.outputs.bump }}"
+
+          # Determine section header based on bump type
+          case $BUMP in
+            major)
+              SECTION="### Breaking Changes"
+              ;;
+            minor)
+              SECTION="### Features"
+              ;;
+            patch)
+              SECTION="### Bug Fixes"
+              ;;
+          esac
+
+          # Create changelog entry
+          ENTRY="## [$VERSION] - $DATE
+
+          $SECTION
+
+          - $PR_TITLE ([#$PR_NUMBER]($PR_URL))
+          "
+
+          # Prepend to CHANGELOG.md (after the header)
+          if [ -f CHANGELOG.md ]; then
+            # Insert after the first two lines (header)
+            head -n 4 CHANGELOG.md > CHANGELOG.tmp
+            echo "" >> CHANGELOG.tmp
+            echo "$ENTRY" >> CHANGELOG.tmp
+            tail -n +5 CHANGELOG.md >> CHANGELOG.tmp
+            mv CHANGELOG.tmp CHANGELOG.md
+          fi
+
+          echo "entry<<EOF" >> $GITHUB_OUTPUT
+          echo "$ENTRY" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Commit version bump
+        if: steps.version.outputs.bump != 'none'
+        run: |
+          VERSION=${{ steps.bump.outputs.version }}
+          git add package.json package-lock.json CHANGELOG.md
+          git commit -m "chore(release): v$VERSION"
+          git push
+
+      - name: Create Git tag
+        if: steps.version.outputs.bump != 'none'
+        run: |
+          VERSION=${{ steps.bump.outputs.version }}
+          git tag -a "v$VERSION" -m "Release v$VERSION"
+          git push origin "v$VERSION"
+
+      - name: Create GitHub Release
+        if: steps.version.outputs.bump != 'none'
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: v${{ steps.bump.outputs.version }}
+          release_name: v${{ steps.bump.outputs.version }}
+          body: |
+            ${{ steps.changelog.outputs.entry }}
+
+            **Full Changelog**: https://github.com/${{ github.repository }}/compare/v${{ steps.bump.outputs.version }}...HEAD
+          draft: false
+          prerelease: false
