@@ -1,0 +1,50 @@
+# Release labels for semantic versioning
+# Apply these labels to PRs to trigger automatic releases
+
+# Major version bump (breaking changes)
+- name: breaking-change
+  color: "d73a4a"
+  description: "Breaking change - triggers MAJOR version bump"
+
+- name: brc
+  color: "d73a4a"
+  description: "Breaking change (alias) - triggers MAJOR version bump"
+
+# Minor version bump (new features)
+- name: feature
+  color: "0e8a16"
+  description: "New feature - triggers MINOR version bump"
+
+- name: feat
+  color: "0e8a16"
+  description: "New feature (alias) - triggers MINOR version bump"
+
+# Patch version bump (bug fixes)
+- name: bugfix
+  color: "fbca04"
+  description: "Bug fix - triggers PATCH version bump"
+
+- name: fix
+  color: "fbca04"
+  description: "Bug fix (alias) - triggers PATCH version bump"
+
+- name: patch
+  color: "fbca04"
+  description: "Patch (alias) - triggers PATCH version bump"
+
+# Other common labels
+- name: documentation
+  color: "0075ca"
+  description: "Documentation changes only"
+
+- name: ci
+  color: "c5def5"
+  description: "CI/CD changes"
+
+- name: dependencies
+  color: "0366d6"
+  description: "Dependency updates"
+
+- name: refactor
+  color: "d4c5f9"
+  description: "Code refactoring"
