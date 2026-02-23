@@ -40,8 +40,6 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-# node js package
-package-lock.json
 
 # Session notes
 TODO.md
