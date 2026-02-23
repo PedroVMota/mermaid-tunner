@@ -1,18 +1,39 @@
 "use client"
 
 import { useState } from "react"
-import { ChevronUp, Settings2 } from "lucide-react"
+import {
+  ChevronDown,
+  Copy,
+  Download,
+  ExternalLink,
+  Settings2,
+  Code,
+  Settings,
+} from "lucide-react"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { ScrollArea } from "@/components/ui/scroll-area"
+import { Separator } from "@/components/ui/separator"
 import { MERMAID_SAMPLES, SAMPLE_NAMES } from "@/lib/mermaid-samples"
 import { cn } from "@/lib/utils"
+import { CodeEditor } from "./code-editor"
 
 interface EditorSidebarProps {
+  code: string
+  onCodeChange: (code: string) => void
   onSampleSelect: (code: string) => void
   selectedSample: string | null
+  onExportPng: (scale?: number) => void
+  onExportSvg: () => void
+  onCopyImage: () => void
+  className?: string
+  style?: React.CSSProperties
 }
 
 const CHIP_COLORS: Record<string, { base: string; active: string }> = {
@@ -66,51 +87,211 @@ const CHIP_COLORS: Record<string, { base: string; active: string }> = {
   },
 }
 
-export function EditorSidebar({ onSampleSelect, selectedSample }: EditorSidebarProps) {
+export function EditorSidebar({
+  code,
+  onCodeChange,
+  onSampleSelect,
+  selectedSample,
+  onExportPng,
+  onExportSvg,
+  onCopyImage,
+  className,
+  style,
+}: EditorSidebarProps) {
+  const [activeTab, setActiveTab] = useState("code")
   const [samplesOpen, setSamplesOpen] = useState(true)
+  const [actionsOpen, setActionsOpen] = useState(true)
+  const [exportScale, setExportScale] = useState(2)
 
-  const handleSelect = (name: string) => {
+  const handleSampleClick = (name: string) => {
     onSampleSelect(MERMAID_SAMPLES[name].code)
   }
 
+  const handleExportPng = () => {
+    onExportPng(exportScale)
+  }
+
   return (
-    <aside className="flex w-80 shrink-0 flex-col gap-3 overflow-y-auto">
-      <Collapsible open={samplesOpen} onOpenChange={setSamplesOpen}>
-        <div className="rounded-lg border border-zinc-200/50 bg-white/70 backdrop-blur-md dark:border-zinc-700/50 dark:bg-zinc-900/60">
-          <CollapsibleTrigger className="flex w-full items-center justify-between px-4 py-3 text-left text-sm font-medium text-zinc-900 dark:text-zinc-100">
-            <span className="flex items-center gap-2">
-              <Settings2 className="size-4 text-zinc-500 dark:text-zinc-400" />
-              Sample Diagrams
-            </span>
-            <ChevronUp
-              className={cn(
-                "size-4 text-zinc-500 transition-transform dark:text-zinc-400",
-                !samplesOpen && "rotate-180"
-              )}
-            />
-          </CollapsibleTrigger>
-          <CollapsibleContent>
-            <div className="flex flex-wrap gap-2 px-4 pb-4">
-              {SAMPLE_NAMES.map((name) => {
-                const isActive = selectedSample === name
-                const colors = CHIP_COLORS[name]
-                return (
-                  <button
-                    key={name}
-                    onClick={() => handleSelect(name)}
-                    className={cn(
-                      "rounded-md border px-3 py-1.5 text-xs font-medium transition-all",
-                      isActive ? colors.active : colors.base
-                    )}
+    <aside
+      className={cn(
+        "flex flex-col overflow-hidden bg-zinc-100 dark:bg-[#0f172a]",
+        className
+      )}
+      style={style}
+    >
+      <ScrollArea className="flex-1">
+        <div className="flex flex-col gap-3 p-3">
+          {/* Code/Config Island */}
+          <div className="overflow-hidden rounded-lg border border-zinc-200 bg-white shadow-sm dark:border-zinc-700 dark:bg-[#16213e]">
+            <Tabs value={activeTab} onValueChange={setActiveTab} className="flex flex-col">
+              <TabsList className="h-10 w-full justify-start gap-0 rounded-t-lg border-b border-zinc-200 bg-transparent px-0 dark:border-zinc-700">
+                <TabsTrigger
+                  value="code"
+                  className="h-full rounded-tl-lg border-b-2 border-transparent px-4 data-[state=active]:border-pink-500 data-[state=active]:bg-transparent data-[state=active]:shadow-none"
+                >
+                  <Code className="mr-1.5 size-4" />
+                  Code
+                </TabsTrigger>
+                <TabsTrigger
+                  value="config"
+                  className="relative h-full rounded-none border-b-2 border-transparent px-4 data-[state=active]:border-pink-500 data-[state=active]:bg-transparent data-[state=active]:shadow-none"
+                >
+                  <Settings className="mr-1.5 size-4" />
+                  Config
+                  <span className="absolute -right-1 -top-1 rounded-full bg-pink-500 px-1.5 py-0.5 text-[10px] font-medium text-white">
+                    Soon
+                  </span>
+                </TabsTrigger>
+              </TabsList>
+
+              <TabsContent value="code" className="mt-0 rounded-b-lg">
+                <div className="h-[280px]">
+                  <CodeEditor value={code} onChange={onCodeChange} className="h-full" />
+                </div>
+              </TabsContent>
+
+              <TabsContent value="config" className="mt-0 rounded-b-lg p-4">
+                <div className="text-sm text-zinc-500 dark:text-zinc-400">
+                  Configuration options coming soon...
+                </div>
+              </TabsContent>
+            </Tabs>
+          </div>
+
+          {/* Sample Diagrams Island */}
+          <div className="overflow-hidden rounded-lg border border-zinc-200 bg-white shadow-sm dark:border-zinc-700 dark:bg-[#16213e]">
+            <Collapsible open={samplesOpen} onOpenChange={setSamplesOpen}>
+              <CollapsibleTrigger className="flex w-full items-center justify-between px-4 py-3 text-left text-sm font-medium hover:bg-zinc-50 dark:hover:bg-zinc-800/50">
+                <span className="flex items-center gap-2">
+                  <Settings2 className="size-4 text-zinc-500 dark:text-zinc-400" />
+                  Sample Diagrams
+                </span>
+                <ChevronDown
+                  className={cn(
+                    "size-4 text-zinc-500 transition-transform dark:text-zinc-400",
+                    !samplesOpen && "-rotate-90"
+                  )}
+                />
+              </CollapsibleTrigger>
+              <CollapsibleContent>
+                <div className="flex flex-wrap gap-1.5 border-t border-zinc-200 p-3 dark:border-zinc-700">
+                  {SAMPLE_NAMES.map((name) => {
+                    const isActive = selectedSample === name
+                    const colors = CHIP_COLORS[name] || {
+                      base: "border-zinc-300 bg-zinc-50 text-zinc-700 hover:bg-zinc-100 dark:border-zinc-600 dark:bg-zinc-700 dark:text-zinc-300",
+                      active: "border-zinc-500 bg-zinc-500 text-white",
+                    }
+                    return (
+                      <button
+                        key={name}
+                        onClick={() => handleSampleClick(name)}
+                        className={cn(
+                          "shrink-0 whitespace-nowrap rounded-md border px-2.5 py-1 text-xs font-medium transition-all",
+                          isActive ? colors.active : colors.base
+                        )}
+                      >
+                        {name}
+                      </button>
+                    )
+                  })}
+                </div>
+              </CollapsibleContent>
+            </Collapsible>
+          </div>
+
+          {/* Actions Island */}
+          <div className="overflow-hidden rounded-lg border border-zinc-200 bg-white shadow-sm dark:border-zinc-700 dark:bg-[#16213e]">
+            <Collapsible open={actionsOpen} onOpenChange={setActionsOpen}>
+              <CollapsibleTrigger className="flex w-full items-center justify-between px-4 py-3 text-left text-sm font-medium hover:bg-zinc-50 dark:hover:bg-zinc-800/50">
+                <span className="flex items-center gap-2">
+                  <Download className="size-4 text-zinc-500 dark:text-zinc-400" />
+                  Actions
+                </span>
+                <ChevronDown
+                  className={cn(
+                    "size-4 text-zinc-500 transition-transform dark:text-zinc-400",
+                    !actionsOpen && "-rotate-90"
+                  )}
+                />
+              </CollapsibleTrigger>
+              <CollapsibleContent>
+                <div className="space-y-4 border-t border-zinc-200 p-4 dark:border-zinc-700">
+                  {/* Export Scale Controls */}
+                  <div className="space-y-2">
+                    <label className="text-xs font-medium text-zinc-500 dark:text-zinc-400">
+                      Export quality
+                    </label>
+                    <div className="flex flex-wrap gap-1">
+                      {[1, 2, 3, 4, 5, 6].map((scale) => (
+                        <Button
+                          key={scale}
+                          variant={exportScale === scale ? "default" : "outline"}
+                          size="sm"
+                          onClick={() => setExportScale(scale)}
+                          className="h-7 min-w-[36px] flex-1 px-1 text-xs"
+                        >
+                          {scale}x
+                        </Button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Download Buttons */}
+                  <div className="flex flex-wrap gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={handleExportPng}
+                      className="h-8 min-w-[70px] flex-1 gap-1 text-xs"
+                    >
+                      <Download className="size-3 shrink-0" />
+                      <span>PNG</span>
+                      <ExternalLink className="size-3 shrink-0" />
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={onExportSvg}
+                      className="h-8 min-w-[70px] flex-1 gap-1 text-xs"
+                    >
+                      <Download className="size-3 shrink-0" />
+                      <span>SVG</span>
+                      <ExternalLink className="size-3 shrink-0" />
+                    </Button>
+                  </div>
+
+                  {/* Copy Image */}
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="h-8 w-full gap-1.5 text-xs"
+                    onClick={onCopyImage}
                   >
-                    {name}
-                  </button>
-                )
-              })}
-            </div>
-          </CollapsibleContent>
+                    <Copy className="size-3" />
+                    Copy Image
+                  </Button>
+
+                  {/* Draw.io Export - Coming Soon */}
+                  <div className="relative">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="h-8 w-full gap-1.5 text-xs opacity-60"
+                      disabled
+                    >
+                      <ExternalLink className="size-3" />
+                      Export to draw.io
+                    </Button>
+                    <span className="absolute -right-1 -top-1 rounded-full bg-pink-500 px-1.5 py-0.5 text-[10px] font-medium text-white">
+                      Soon
+                    </span>
+                  </div>
+                </div>
+              </CollapsibleContent>
+            </Collapsible>
+          </div>
         </div>
-      </Collapsible>
+      </ScrollArea>
     </aside>
   )
 }

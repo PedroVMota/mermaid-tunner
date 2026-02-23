@@ -1,3 +1,7 @@
 export { MermaidEditor } from "./mermaid-editor"
-export { MermaidPreview } from "./mermaid-preview"
+export { MermaidPreview, type MermaidPreviewHandle } from "./mermaid-preview"
 export { EditorSidebar } from "./editor-sidebar"
+export { EditorHeader } from "./editor-header"
+export { PreviewControls } from "./preview-controls"
+export { CodeEditor } from "./code-editor"
+export { MermaidLogo } from "./mermaid-logo"
