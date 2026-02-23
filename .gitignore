@@ -39,3 +39,9 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# node js package
+./package-lock.json
+
+# Ignore implementation resume v* markdown
+/resume-v*.md
