@@ -1,12 +1,21 @@
 "use client"
 
-import { useState } from "react"
-import { Grid3X3 } from "lucide-react"
-import { Textarea } from "@/components/ui/textarea"
-import { MermaidPreview } from "./mermaid-preview"
+import { useState, useRef, useEffect, useCallback } from "react"
+import { MermaidPreview, type MermaidPreviewHandle } from "./mermaid-preview"
 import { EditorSidebar } from "./editor-sidebar"
+import { PreviewControls } from "./preview-controls"
+import { ResizableHandle } from "@/components/ui/resizable-handle"
 import { MERMAID_SAMPLES } from "@/lib/mermaid-samples"
 import { cn } from "@/lib/utils"
+import {
+  exportDiagram,
+  copyDiagramToClipboard,
+  type ExportFormat,
+} from "@/lib/export-utils"
+
+const MIN_SIDEBAR_WIDTH = 280
+const MAX_SIDEBAR_WIDTH = 600
+const DEFAULT_SIDEBAR_WIDTH = 360
 
 const DEFAULT_DIAGRAM = `flowchart TD
     A[Start] --> B{Is it working?}
@@ -18,6 +27,35 @@ export function MermaidEditor() {
   const [code, setCode] = useState(DEFAULT_DIAGRAM)
   const [selectedSample, setSelectedSample] = useState<string | null>("Flowchart")
   const [showGrid, setShowGrid] = useState(true)
+  const [isFullscreen, setIsFullscreen] = useState(false)
+  const [isDark, setIsDark] = useState(true)
+  const [sidebarWidth, setSidebarWidth] = useState(DEFAULT_SIDEBAR_WIDTH)
+  const previewRef = useRef<MermaidPreviewHandle>(null)
+  const previewContainerRef = useRef<HTMLDivElement>(null)
+
+  const handleResize = useCallback((delta: number) => {
+    setSidebarWidth((prev) => {
+      const newWidth = prev + delta
+      return Math.min(MAX_SIDEBAR_WIDTH, Math.max(MIN_SIDEBAR_WIDTH, newWidth))
+    })
+  }, [])
+
+  useEffect(() => {
+    const checkTheme = () => {
+      if (typeof window !== "undefined") {
+        setIsDark(document.documentElement.classList.contains("dark"))
+      }
+    }
+
+    checkTheme()
+
+    const handleThemeChange = () => {
+      checkTheme()
+    }
+
+    window.addEventListener("theme-change", handleThemeChange)
+    return () => window.removeEventListener("theme-change", handleThemeChange)
+  }, [])
 
   const handleSampleSelect = (sampleCode: string) => {
     setCode(sampleCode)
@@ -32,53 +70,125 @@ export function MermaidEditor() {
     setSelectedSample(null)
   }
 
+  const handleExport = async (format: ExportFormat, scale: number = 2) => {
+    const container = previewRef.current?.getContainer()
+    if (!container) {
+      return
+    }
+
+    try {
+      const darkMode = previewRef.current?.isDarkMode() ?? false
+      await exportDiagram(container, { format, scale, darkMode })
+    } catch (error) {
+      console.error("Export failed:", error)
+    }
+  }
+
+  const handleExportPng = (scale?: number) => {
+    handleExport("png", scale ?? 2)
+  }
+
+  const handleExportSvg = () => {
+    handleExport("svg", 1)
+  }
+
+  const handleCopyImage = async () => {
+    const container = previewRef.current?.getContainer()
+    if (!container) {
+      return
+    }
+
+    try {
+      const darkMode = previewRef.current?.isDarkMode() ?? false
+      await copyDiagramToClipboard(container, 2, darkMode)
+    } catch (error) {
+      console.error("Copy image failed:", error)
+    }
+  }
+
+  const handleToggleTheme = useCallback(() => {
+    const html = document.documentElement
+    const newIsDark = !html.classList.contains("dark")
+
+    if (newIsDark) {
+      html.classList.add("dark")
+      localStorage.setItem("theme", "dark")
+    } else {
+      html.classList.remove("dark")
+      localStorage.setItem("theme", "light")
+    }
+
+    setIsDark(newIsDark)
+    window.dispatchEvent(new Event("theme-change"))
+  }, [])
+
+  const handleToggleFullscreen = useCallback(() => {
+    if (!previewContainerRef.current) return
+
+    if (!document.fullscreenElement) {
+      previewContainerRef.current.requestFullscreen()
+      setIsFullscreen(true)
+    } else {
+      document.exitFullscreen()
+      setIsFullscreen(false)
+    }
+  }, [])
+
+  useEffect(() => {
+    const handleFullscreenChange = () => {
+      setIsFullscreen(!!document.fullscreenElement)
+    }
+
+    document.addEventListener("fullscreenchange", handleFullscreenChange)
+    return () => document.removeEventListener("fullscreenchange", handleFullscreenChange)
+  }, [])
+
   return (
-    <div className="flex h-full w-full gap-4">
-      <EditorSidebar onSampleSelect={handleSampleSelect} selectedSample={selectedSample} />
+    <div className="flex h-full w-full overflow-hidden">
+      {/* Left Sidebar */}
+      <EditorSidebar
+        code={code}
+        onCodeChange={handleCodeChange}
+        onSampleSelect={handleSampleSelect}
+        selectedSample={selectedSample}
+        onExportPng={handleExportPng}
+        onExportSvg={handleExportSvg}
+        onCopyImage={handleCopyImage}
+        style={{ width: sidebarWidth }}
+        className="shrink-0"
+      />
 
-      <div className="flex flex-1 flex-col gap-4 lg:flex-row">
-        {/* Code Panel */}
-        <div className="flex flex-1 flex-col rounded-xl border border-zinc-200/50 bg-white/70 backdrop-blur-md dark:border-zinc-700/50 dark:bg-zinc-900/60">
-          <div className="flex items-center border-b border-zinc-200/50 px-4 py-3 dark:border-zinc-700/50">
-            <h2 className="text-sm font-medium text-zinc-700 dark:text-zinc-300">Code</h2>
-          </div>
-          <div className="flex-1 p-4">
-            <Textarea
-              value={code}
-              onChange={(e) => handleCodeChange(e.target.value)}
-              placeholder="Enter your Mermaid diagram code..."
-              className="h-full min-h-[300px] resize-none border-0 bg-transparent font-mono text-sm text-zinc-800 placeholder:text-zinc-400 focus-visible:ring-0 dark:text-zinc-100 dark:placeholder:text-zinc-500 lg:min-h-0"
-              spellCheck={false}
-            />
-          </div>
+      {/* Resize Handle */}
+      <ResizableHandle onResize={handleResize} />
+
+      {/* Preview Panel */}
+      <div
+        ref={previewContainerRef}
+        className={cn(
+          "relative flex-1 bg-zinc-100 dark:bg-zinc-950",
+          isFullscreen && "fixed inset-0 z-50"
+        )}
+      >
+        <div
+          className={cn(
+            "h-full w-full overflow-hidden",
+            showGrid && "bg-grid"
+          )}
+        >
+          <MermaidPreview ref={previewRef} code={code} className="h-full w-full" />
         </div>
 
-        {/* Preview Panel */}
-        <div className="flex flex-1 flex-col rounded-xl border border-zinc-200/50 bg-white/70 backdrop-blur-md dark:border-zinc-700/50 dark:bg-zinc-900/60">
-          <div className="flex items-center justify-between border-b border-zinc-200/50 px-4 py-3 dark:border-zinc-700/50">
-            <h2 className="text-sm font-medium text-zinc-700 dark:text-zinc-300">Preview</h2>
-            <button
-              onClick={() => setShowGrid(!showGrid)}
-              className={cn(
-                "rounded-md p-1.5 transition-colors",
-                showGrid
-                  ? "bg-zinc-200 text-zinc-700 dark:bg-zinc-700 dark:text-zinc-200"
-                  : "text-zinc-400 hover:bg-zinc-100 hover:text-zinc-600 dark:text-zinc-500 dark:hover:bg-zinc-800 dark:hover:text-zinc-300"
-              )}
-              aria-label={showGrid ? "Hide grid" : "Show grid"}
-            >
-              <Grid3X3 className="size-4" />
-            </button>
-          </div>
-          <div
-            className={cn(
-              "relative flex flex-1 items-center justify-center overflow-auto p-4",
-              showGrid && "bg-grid"
-            )}
-          >
-            <MermaidPreview code={code} className="max-h-full max-w-full" />
-          </div>
-        </div>
+        <PreviewControls
+          onFitToScreen={() => previewRef.current?.fitToScreen()}
+          onZoomIn={() => previewRef.current?.zoomIn()}
+          onZoomOut={() => previewRef.current?.zoomOut()}
+          onToggleFullscreen={handleToggleFullscreen}
+          isFullscreen={isFullscreen}
+          showGrid={showGrid}
+          onToggleGrid={() => setShowGrid(!showGrid)}
+          isDark={isDark}
+          onToggleTheme={handleToggleTheme}
+        />
       </div>
     </div>
   )

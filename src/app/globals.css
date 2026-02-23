@@ -136,3 +136,53 @@
 :is(.dark *).bg-grid {
   --grid-color: rgba(255, 255, 255, 0.08);
 }
+
+/* Mermaid Live Editor theme colors */
+:root {
+  --mermaid-accent: #e94560;
+}
+
+/* Custom scrollbar styling */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 4px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.3);
+}
+
+:is(.dark *).custom-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+:is(.dark *).custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+/* Monaco Editor overrides */
+.monaco-editor {
+  --vscode-editor-background: transparent !important;
+}
+
+.monaco-editor .margin {
+  background-color: transparent !important;
+}
+
+.monaco-editor .line-numbers {
+  padding-left: 8px !important;
+}
+
+/* Pill button utility */
+.pill-button {
+  @apply rounded-full px-3 py-1 text-xs font-medium transition-all;
+}
