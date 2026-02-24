@@ -102,7 +102,9 @@ function prepareSvgForExport(svg: SVGSVGElement): { svg: SVGSVGElement; dimensio
 function svgToBase64DataUrl(svg: SVGSVGElement): string {
   const serializer = new XMLSerializer()
   const svgString = serializer.serializeToString(svg)
-  const base64 = btoa(unescape(encodeURIComponent(svgString)))
+  const utf8Bytes = new TextEncoder().encode(svgString)
+  const binaryString = Array.from(utf8Bytes, (byte) => String.fromCharCode(byte)).join("")
+  const base64 = btoa(binaryString)
   return `data:image/svg+xml;base64,${base64}`
 }
 
@@ -309,5 +311,37 @@ export async function copyDiagramToClipboard(
 
     img.onerror = () => reject(new Error("Failed to load SVG"))
     img.src = dataUrl
+  })
+}
+
+/**
+ * Opens draw.io with Mermaid code copied to clipboard.
+ * User can then use Arrange > Insert > Mermaid and paste (Ctrl+V).
+ */
+export async function openInDrawio(mermaidCode: string): Promise<void> {
+  const { toast } = await import("sonner")
+  const drawioBaseUrl = process.env.NEXT_PUBLIC_DRAWIO_URL || "https://app.diagrams.net"
+
+  // Copy Mermaid code to clipboard
+  try {
+    await navigator.clipboard.writeText(mermaidCode)
+  } catch {
+    // Fallback: try execCommand
+    const textarea = document.createElement("textarea")
+    textarea.value = mermaidCode
+    document.body.appendChild(textarea)
+    textarea.select()
+    document.execCommand("copy")
+    document.body.removeChild(textarea)
+  }
+
+  // Open draw.io - user will paste via Arrange > Insert > Mermaid
+  const finalUrl = `${drawioBaseUrl}/?splash=0`
+  window.open(finalUrl, "_blank", "noopener,noreferrer")
+
+  // Show instruction toast
+  toast.success("Mermaid code copied!", {
+    description: "In draw.io: Click + → Advanced → Mermaid... → Paste (Ctrl+V)",
+    duration: 8000,
   })
 }

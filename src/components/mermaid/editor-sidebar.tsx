@@ -6,8 +6,8 @@ import {
   Copy,
   Download,
   ExternalLink,
-  Settings2,
-  Code,
+  Sparkles,
+  Code2,
   Settings,
 } from "lucide-react"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
@@ -17,9 +17,7 @@ import {
   CollapsibleTrigger,
 } from "@/components/ui/collapsible"
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
 import { ScrollArea } from "@/components/ui/scroll-area"
-import { Separator } from "@/components/ui/separator"
 import { MERMAID_SAMPLES, SAMPLE_NAMES } from "@/lib/mermaid-samples"
 import { cn } from "@/lib/utils"
 import { CodeEditor } from "./code-editor"
@@ -32,6 +30,7 @@ interface EditorSidebarProps {
   onExportPng: (scale?: number) => void
   onExportSvg: () => void
   onCopyImage: () => void
+  onOpenDrawio: () => void
   className?: string
   style?: React.CSSProperties
 }
@@ -95,6 +94,7 @@ export function EditorSidebar({
   onExportPng,
   onExportSvg,
   onCopyImage,
+  onOpenDrawio,
   className,
   style,
 }: EditorSidebarProps) {
@@ -114,7 +114,7 @@ export function EditorSidebar({
   return (
     <aside
       className={cn(
-        "flex flex-col overflow-hidden bg-zinc-100 dark:bg-[#0f172a]",
+        "flex flex-col overflow-hidden border-r border-zinc-200/50 bg-zinc-50/80 backdrop-blur-sm dark:border-white/10 dark:bg-[#0a0a1a]/90",
         className
       )}
       style={style}
@@ -122,35 +122,39 @@ export function EditorSidebar({
       <ScrollArea className="flex-1">
         <div className="flex flex-col gap-3 p-3">
           {/* Code/Config Island */}
-          <div className="overflow-hidden rounded-lg border border-zinc-200 bg-white shadow-sm dark:border-zinc-700 dark:bg-[#16213e]">
+          <div className="group overflow-hidden rounded-xl border border-zinc-200/80 bg-white/90 shadow-sm backdrop-blur-sm transition-all hover:border-pink-500/30 hover:shadow-md hover:shadow-pink-500/5 dark:border-white/10 dark:bg-white/5">
             <Tabs value={activeTab} onValueChange={setActiveTab} className="flex flex-col">
-              <TabsList className="h-10 w-full justify-start gap-0 rounded-t-lg border-b border-zinc-200 bg-transparent px-0 dark:border-zinc-700">
+              <TabsList className="h-11 w-full justify-start gap-0 rounded-t-xl border-b border-zinc-200/80 bg-zinc-50/50 px-0 dark:border-white/10 dark:bg-white/5">
                 <TabsTrigger
                   value="code"
-                  className="h-full rounded-tl-lg border-b-2 border-transparent px-4 data-[state=active]:border-pink-500 data-[state=active]:bg-transparent data-[state=active]:shadow-none"
+                  className="h-full gap-2 rounded-none rounded-tl-xl border-b-2 border-transparent px-4 text-zinc-600 transition-all data-[state=active]:border-pink-500 data-[state=active]:bg-white/80 data-[state=active]:text-zinc-900 data-[state=active]:shadow-none dark:text-zinc-400 dark:data-[state=active]:bg-white/10 dark:data-[state=active]:text-white"
                 >
-                  <Code className="mr-1.5 size-4" />
+                  <span className="flex size-5 items-center justify-center rounded bg-gradient-to-br from-blue-500 to-cyan-500 shadow-sm">
+                    <Code2 className="size-3 text-white" />
+                  </span>
                   Code
                 </TabsTrigger>
                 <TabsTrigger
                   value="config"
-                  className="relative h-full rounded-none border-b-2 border-transparent px-4 data-[state=active]:border-pink-500 data-[state=active]:bg-transparent data-[state=active]:shadow-none"
+                  className="relative h-full gap-2 rounded-none border-b-2 border-transparent px-4 text-zinc-600 transition-all data-[state=active]:border-pink-500 data-[state=active]:bg-white/80 data-[state=active]:text-zinc-900 data-[state=active]:shadow-none dark:text-zinc-400 dark:data-[state=active]:bg-white/10 dark:data-[state=active]:text-white"
                 >
-                  <Settings className="mr-1.5 size-4" />
+                  <span className="flex size-5 items-center justify-center rounded bg-gradient-to-br from-amber-500 to-orange-500 shadow-sm">
+                    <Settings className="size-3 text-white" />
+                  </span>
                   Config
-                  <span className="absolute -right-1 -top-1 rounded-full bg-pink-500 px-1.5 py-0.5 text-[10px] font-medium text-white">
+                  <span className="absolute -right-1 -top-1 rounded-full bg-gradient-to-r from-pink-500 to-rose-500 px-1.5 py-0.5 text-[10px] font-medium text-white shadow-sm">
                     Soon
                   </span>
                 </TabsTrigger>
               </TabsList>
 
-              <TabsContent value="code" className="mt-0 rounded-b-lg">
+              <TabsContent value="code" className="mt-0 rounded-b-xl">
                 <div className="h-[280px]">
                   <CodeEditor value={code} onChange={onCodeChange} className="h-full" />
                 </div>
               </TabsContent>
 
-              <TabsContent value="config" className="mt-0 rounded-b-lg p-4">
+              <TabsContent value="config" className="mt-0 rounded-b-xl p-4">
                 <div className="text-sm text-zinc-500 dark:text-zinc-400">
                   Configuration options coming soon...
                 </div>
@@ -159,22 +163,24 @@ export function EditorSidebar({
           </div>
 
           {/* Sample Diagrams Island */}
-          <div className="overflow-hidden rounded-lg border border-zinc-200 bg-white shadow-sm dark:border-zinc-700 dark:bg-[#16213e]">
+          <div className="group overflow-hidden rounded-xl border border-zinc-200/80 bg-white/90 shadow-sm backdrop-blur-sm transition-all hover:border-pink-500/30 hover:shadow-md hover:shadow-pink-500/5 dark:border-white/10 dark:bg-white/5">
             <Collapsible open={samplesOpen} onOpenChange={setSamplesOpen}>
-              <CollapsibleTrigger className="flex w-full items-center justify-between px-4 py-3 text-left text-sm font-medium hover:bg-zinc-50 dark:hover:bg-zinc-800/50">
-                <span className="flex items-center gap-2">
-                  <Settings2 className="size-4 text-zinc-500 dark:text-zinc-400" />
-                  Sample Diagrams
+              <CollapsibleTrigger className="flex w-full items-center justify-between px-4 py-3 text-left text-sm font-medium text-zinc-700 transition-colors hover:bg-zinc-100/50 dark:text-zinc-200 dark:hover:bg-white/5">
+                <span className="flex items-center gap-2.5">
+                  <span className="flex size-6 items-center justify-center rounded-md bg-gradient-to-br from-pink-500 to-rose-500 shadow-sm">
+                    <Sparkles className="size-3.5 text-white" />
+                  </span>
+                  <span>Sample Diagrams</span>
                 </span>
                 <ChevronDown
                   className={cn(
-                    "size-4 text-zinc-500 transition-transform dark:text-zinc-400",
+                    "size-4 text-zinc-400 transition-transform duration-200 dark:text-zinc-500",
                     !samplesOpen && "-rotate-90"
                   )}
                 />
               </CollapsibleTrigger>
               <CollapsibleContent>
-                <div className="flex flex-wrap gap-1.5 border-t border-zinc-200 p-3 dark:border-zinc-700">
+                <div className="flex flex-wrap gap-1.5 border-t border-zinc-200/80 p-3 dark:border-white/10">
                   {SAMPLE_NAMES.map((name) => {
                     const isActive = selectedSample === name
                     const colors = CHIP_COLORS[name] || {
@@ -200,22 +206,24 @@ export function EditorSidebar({
           </div>
 
           {/* Actions Island */}
-          <div className="overflow-hidden rounded-lg border border-zinc-200 bg-white shadow-sm dark:border-zinc-700 dark:bg-[#16213e]">
+          <div className="group overflow-hidden rounded-xl border border-zinc-200/80 bg-white/90 shadow-sm backdrop-blur-sm transition-all hover:border-pink-500/30 hover:shadow-md hover:shadow-pink-500/5 dark:border-white/10 dark:bg-white/5">
             <Collapsible open={actionsOpen} onOpenChange={setActionsOpen}>
-              <CollapsibleTrigger className="flex w-full items-center justify-between px-4 py-3 text-left text-sm font-medium hover:bg-zinc-50 dark:hover:bg-zinc-800/50">
-                <span className="flex items-center gap-2">
-                  <Download className="size-4 text-zinc-500 dark:text-zinc-400" />
-                  Actions
+              <CollapsibleTrigger className="flex w-full items-center justify-between px-4 py-3 text-left text-sm font-medium text-zinc-700 transition-colors hover:bg-zinc-100/50 dark:text-zinc-200 dark:hover:bg-white/5">
+                <span className="flex items-center gap-2.5">
+                  <span className="flex size-6 items-center justify-center rounded-md bg-gradient-to-br from-violet-500 to-purple-500 shadow-sm">
+                    <Download className="size-3.5 text-white" />
+                  </span>
+                  <span>Export & Actions</span>
                 </span>
                 <ChevronDown
                   className={cn(
-                    "size-4 text-zinc-500 transition-transform dark:text-zinc-400",
+                    "size-4 text-zinc-400 transition-transform duration-200 dark:text-zinc-500",
                     !actionsOpen && "-rotate-90"
                   )}
                 />
               </CollapsibleTrigger>
               <CollapsibleContent>
-                <div className="space-y-4 border-t border-zinc-200 p-4 dark:border-zinc-700">
+                <div className="space-y-4 border-t border-zinc-200/80 p-4 dark:border-white/10">
                   {/* Export Scale Controls */}
                   <div className="space-y-2">
                     <label className="text-xs font-medium text-zinc-500 dark:text-zinc-400">
@@ -228,7 +236,12 @@ export function EditorSidebar({
                           variant={exportScale === scale ? "default" : "outline"}
                           size="sm"
                           onClick={() => setExportScale(scale)}
-                          className="h-7 min-w-[36px] flex-1 px-1 text-xs"
+                          className={cn(
+                            "h-7 min-w-[36px] flex-1 px-1 text-xs transition-all",
+                            exportScale === scale
+                              ? "border-0 bg-gradient-to-r from-pink-500 to-rose-500 text-white shadow-md shadow-pink-500/25 hover:from-pink-600 hover:to-rose-600"
+                              : "border-zinc-200 hover:border-pink-500/50 hover:bg-pink-50 dark:border-zinc-700 dark:hover:border-pink-500/50 dark:hover:bg-pink-500/10"
+                          )}
                         >
                           {scale}x
                         </Button>
@@ -242,21 +255,19 @@ export function EditorSidebar({
                       variant="outline"
                       size="sm"
                       onClick={handleExportPng}
-                      className="h-8 min-w-[70px] flex-1 gap-1 text-xs"
+                      className="h-9 min-w-[70px] flex-1 gap-1.5 border-zinc-200 text-xs transition-all hover:border-pink-500/50 hover:bg-pink-50 hover:text-pink-600 dark:border-zinc-700 dark:hover:border-pink-500/50 dark:hover:bg-pink-500/10 dark:hover:text-pink-400"
                     >
-                      <Download className="size-3 shrink-0" />
-                      <span>PNG</span>
-                      <ExternalLink className="size-3 shrink-0" />
+                      <Download className="size-3.5 shrink-0" />
+                      <span className="font-medium">PNG</span>
                     </Button>
                     <Button
                       variant="outline"
                       size="sm"
                       onClick={onExportSvg}
-                      className="h-8 min-w-[70px] flex-1 gap-1 text-xs"
+                      className="h-9 min-w-[70px] flex-1 gap-1.5 border-zinc-200 text-xs transition-all hover:border-violet-500/50 hover:bg-violet-50 hover:text-violet-600 dark:border-zinc-700 dark:hover:border-violet-500/50 dark:hover:bg-violet-500/10 dark:hover:text-violet-400"
                     >
-                      <Download className="size-3 shrink-0" />
-                      <span>SVG</span>
-                      <ExternalLink className="size-3 shrink-0" />
+                      <Download className="size-3.5 shrink-0" />
+                      <span className="font-medium">SVG</span>
                     </Button>
                   </div>
 
@@ -264,28 +275,23 @@ export function EditorSidebar({
                   <Button
                     variant="outline"
                     size="sm"
-                    className="h-8 w-full gap-1.5 text-xs"
+                    className="h-9 w-full gap-2 border-zinc-200 text-xs transition-all hover:border-emerald-500/50 hover:bg-emerald-50 hover:text-emerald-600 dark:border-zinc-700 dark:hover:border-emerald-500/50 dark:hover:bg-emerald-500/10 dark:hover:text-emerald-400"
                     onClick={onCopyImage}
                   >
-                    <Copy className="size-3" />
-                    Copy Image
+                    <Copy className="size-3.5" />
+                    <span className="font-medium">Copy to Clipboard</span>
                   </Button>
 
-                  {/* Draw.io Export - Coming Soon */}
-                  <div className="relative">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="h-8 w-full gap-1.5 text-xs opacity-60"
-                      disabled
-                    >
-                      <ExternalLink className="size-3" />
-                      Export to draw.io
-                    </Button>
-                    <span className="absolute -right-1 -top-1 rounded-full bg-pink-500 px-1.5 py-0.5 text-[10px] font-medium text-white">
-                      Soon
-                    </span>
-                  </div>
+                  {/* Draw.io Export */}
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="h-9 w-full gap-2 border-zinc-200 text-xs transition-all hover:border-blue-500/50 hover:bg-blue-50 hover:text-blue-600 dark:border-zinc-700 dark:hover:border-blue-500/50 dark:hover:bg-blue-500/10 dark:hover:text-blue-400"
+                    onClick={onOpenDrawio}
+                  >
+                    <ExternalLink className="size-3.5" />
+                    <span className="font-medium">Open in draw.io</span>
+                  </Button>
                 </div>
               </CollapsibleContent>
             </Collapsible>

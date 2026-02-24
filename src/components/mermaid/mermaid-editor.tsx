@@ -10,6 +10,7 @@ import { cn } from "@/lib/utils"
 import {
   exportDiagram,
   copyDiagramToClipboard,
+  openInDrawio,
   type ExportFormat,
 } from "@/lib/export-utils"
 
@@ -154,6 +155,7 @@ export function MermaidEditor() {
         onExportPng={handleExportPng}
         onExportSvg={handleExportSvg}
         onCopyImage={handleCopyImage}
+        onOpenDrawio={() => void openInDrawio(code)}
         style={{ width: sidebarWidth }}
         className="shrink-0"
       />
@@ -165,8 +167,8 @@ export function MermaidEditor() {
       <div
         ref={previewContainerRef}
         className={cn(
-          "relative flex-1 bg-zinc-100 dark:bg-zinc-950",
-          isFullscreen && "fixed inset-0 z-50"
+          "relative flex-1 overflow-hidden rounded-tl-2xl border-l border-t border-zinc-200/50 bg-white/50 backdrop-blur-sm dark:border-white/10 dark:bg-[#0a0a1a]/50",
+          isFullscreen && "fixed inset-0 z-50 rounded-none border-0"
         )}
       >
         <div

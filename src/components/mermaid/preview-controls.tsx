@@ -32,7 +32,7 @@ export function PreviewControls({
   return (
     <>
       {/* Top-right: Zoom controls */}
-      <div className="absolute right-3 top-3 flex gap-1 rounded-lg bg-white/80 p-1 shadow-sm backdrop-blur-sm dark:bg-zinc-800/80">
+      <div className="absolute right-3 top-3 flex gap-1 rounded-xl border border-zinc-200/50 bg-white/90 p-1 shadow-lg shadow-black/5 backdrop-blur-md dark:border-white/10 dark:bg-white/10">
         <Button
           variant="ghost"
           size="icon"
@@ -76,11 +76,11 @@ export function PreviewControls({
       </div>
 
       {/* Bottom-center: Grid */}
-      <div className="absolute bottom-3 left-1/2 flex -translate-x-1/2 gap-1 rounded-lg bg-white/80 p-1 shadow-sm backdrop-blur-sm dark:bg-zinc-800/80">
+      <div className="absolute bottom-3 left-1/2 flex -translate-x-1/2 gap-1 rounded-xl border border-zinc-200/50 bg-white/90 p-1 shadow-lg shadow-black/5 backdrop-blur-md dark:border-white/10 dark:bg-white/10">
         <Button
           variant={showGrid ? "secondary" : "ghost"}
           size="icon"
-          className={cn("size-7", showGrid && "bg-zinc-200 dark:bg-zinc-700")}
+          className={cn("size-7", showGrid && "bg-pink-500/20 text-pink-500 dark:bg-pink-500/20 dark:text-pink-400")}
           onClick={onToggleGrid}
           title="Toggle grid"
         >
@@ -89,7 +89,7 @@ export function PreviewControls({
       </div>
 
       {/* Bottom-right: Version + Theme */}
-      <div className="absolute bottom-3 right-3 flex items-center gap-2 rounded-lg bg-white/80 px-2 py-1 shadow-sm backdrop-blur-sm dark:bg-zinc-800/80">
+      <div className="absolute bottom-3 right-3 flex items-center gap-2 rounded-xl border border-zinc-200/50 bg-white/90 px-2 py-1 shadow-lg shadow-black/5 backdrop-blur-md dark:border-white/10 dark:bg-white/10">
         <span className="text-xs text-zinc-500 dark:text-zinc-400">v{version}</span>
         <Button
           variant="ghost"
